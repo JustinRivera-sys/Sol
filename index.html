@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Detector de Luz Alta</title>
+  <title>Detector de Sol (Equilibrado)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     html, body {
@@ -105,8 +105,8 @@
           const b = frame[i + 2];
           const brightness = (r + g + b) / 3;
 
-          // Más sensible: detecta píxeles con brillo >= 200
-          if (brightness >= 200) {
+          // Sensibilidad balanceada: brillo >= 220
+          if (brightness >= 220) {
             veryBrightPixels++;
           }
         }
@@ -115,13 +115,13 @@
       const centerAreaPixels = (endX - startX) * (endY - startY);
       const brightRatio = veryBrightPixels / centerAreaPixels;
 
-      if (brightRatio > 0.005) { // 0.5% del centro brillante
+      if (brightRatio > 0.01) { // Solo 1% del centro necesita ser muy brillante
         consistentBrightFrames++;
-        if (consistentBrightFrames >= 1) {
+        if (consistentBrightFrames >= 2) {
           startCountdown();
           return;
         } else {
-          overlay.textContent = `🌞 Luz intensa detectada (${consistentBrightFrames}/1)...`;
+          overlay.textContent = `🌞 Luz intensa detectada (${consistentBrightFrames}/2)...`;
         }
       } else {
         consistentBrightFrames = 0;
@@ -134,12 +134,12 @@
     function startCountdown() {
       countdownStarted = true;
       let seconds = 5;
-      overlay.textContent = `🌞 ¡Luz detectada! Ingresando en ${seconds}…`;
+      overlay.textContent = `🌞 ¡Sol detectado! Ingresando en ${seconds}…`;
 
       const interval = setInterval(() => {
         seconds--;
         if (seconds > 0) {
-          overlay.textContent = `🌞 ¡Luz detectada! Ingresando en ${seconds}…`;
+          overlay.textContent = `🌞 ¡Sol detectado! Ingresando en ${seconds}…`;
         } else {
           clearInterval(interval);
           window.location.href = "https://www.banrural.com.gt/site/personas";
