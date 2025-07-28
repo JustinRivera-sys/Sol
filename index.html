@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Detector de Sol (Más Preciso)</title>
+  <title>Detector de Sol (Ajustado Final)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     html, body {
@@ -105,8 +105,8 @@
           const b = frame[i + 2];
           const brightness = (r + g + b) / 3;
 
-          // Más exigente: brillo alto (240 o más)
-          if (brightness >= 240) {
+          // Brillo mínimo considerado alto
+          if (brightness >= 230) {
             veryBrightPixels++;
           }
         }
@@ -115,13 +115,13 @@
       const centerAreaPixels = (endX - startX) * (endY - startY);
       const brightRatio = veryBrightPixels / centerAreaPixels;
 
-      if (brightRatio > 0.03) { // Ahora se necesita 3% brillante
+      if (brightRatio > 0.02) {
         consistentBrightFrames++;
-        if (consistentBrightFrames >= 4) { // Y se necesita mantenerlo por 4 ciclos
+        if (consistentBrightFrames >= 2) {
           startCountdown();
           return;
         } else {
-          overlay.textContent = `🌞 Luz intensa detectada (${consistentBrightFrames}/4)...`;
+          overlay.textContent = `🌞 Luz intensa detectada (${consistentBrightFrames}/2)...`;
         }
       } else {
         consistentBrightFrames = 0;
