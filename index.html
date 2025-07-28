@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detector de Sol (Preciso)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+
+    html, body {
+      height: 100%;
+      background-color: black;
+      overflow: hidden;
+    }
+
+    #video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 2rem;
+      background: rgba(0, 0, 0, 0.2);
+      text-shadow: 0 0 10px black;
+    }
+
+    #canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="video" autoplay playsinline muted></video>
+  <div id="overlay">🔍 Buscando…</div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const overlay = document.getElementById('overlay');
+    const ctx = canvas.getContext('2d');
+
+    let countdownStarted = false;
+    let consistentBrightFrames = 0;
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+
+        video.srcObject = stream;
+
+        video.addEventListener('loadedmetadata', () => {
+          video.play();
+          detectBrightness();
+        });
+
+      } catch (err) {
+        console.error("Error al acceder a la cámara:", err);
+        overlay.textContent = "🚫 No se pudo acceder a la cámara";
+      }
+    }
+
+    function detectBrightness() {
+      if (video.readyState < 2 || countdownStarted) {
+        requestAnimationFrame(detectBrightness);
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const frame = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+      let veryBrightPixels = 0;
+
+      const width = canvas.width;
+      const height = canvas.height;
+
+      // Solo analizamos el centro (zona del 50% central)
+      const startX = Math.floor(width * 0.25);
+      const endX = Math.floor(width * 0.75);
+      const startY = Math.floor(height * 0.25);
+      const endY = Math.floor(height * 0.75);
+
+      for (let y = startY; y < endY; y++) {
+        for (let x = startX; x < endX; x++) {
+          const i = (y * width + x) * 4;
+          const r = frame[i];
+          const g = frame[i + 1];
+          const b = frame[i + 2];
+          const brightness = (r + g + b) / 3;
+
+          // Más exigente: solo cuenta los que son prácticamente blanco puro
+          if (brightness >= 254 && r > 250 && g > 250 && b > 250) {
+            veryBrightPixels++;
+          }
+        }
+      }
+
+      const centerAreaPixels = (endX - startX) * (endY - startY);
+      const brightRatio = veryBrightPixels / centerAreaPixels;
+
+      if (brightRatio > 0.05) {
+        // Solo continúa si se detecta luz brillante durante varios ciclos (3 consecutivos)
+        consistentBrightFrames++;
+        if (consistentBrightFrames >= 3) {
+          startCountdown();
+          return;
+        } else {
+          overlay.textContent = `🌞 Luz intensa detectada (${consistentBrightFrames}/3)...`;
+        }
+      } else {
+        consistentBrightFrames = 0;
+        overlay.textContent = "🔍 Buscando…";
+      }
+
+      setTimeout(detectBrightness, 1000);
+    }
+
+    function startCountdown() {
+      countdownStarted = true;
+      let seconds = 5;
+      overlay.textContent = `🌞 ¡Sol detectado! Ingresando en ${seconds}…`;
+
+      const interval = setInterval(() => {
+        seconds--;
+        if (seconds > 0) {
+          overlay.textContent = `🌞 ¡Sol detectado! Ingresando en ${seconds}…`;
+        } else {
+          clearInterval(interval);
+          window.location.href = "https://www.banrural.com.gt/site/personas"; // tu URL aquí
+        }
+      }, 1000);
+    }
+
+    startCamera();
+  </script>
+
+</body>
+</html>
