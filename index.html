@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Detector de Sol (Preciso)</title>
+  <title>Detector de Sol (Más Sensible)</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-
     html, body {
       height: 100%;
       background-color: black;
       overflow: hidden;
     }
-
     #video {
       position: fixed;
       top: 0;
@@ -22,7 +20,6 @@
       object-fit: cover;
       z-index: 1;
     }
-
     #overlay {
       position: fixed;
       top: 0;
@@ -38,7 +35,6 @@
       background: rgba(0, 0, 0, 0.2);
       text-shadow: 0 0 10px black;
     }
-
     #canvas {
       display: none;
     }
@@ -96,7 +92,6 @@
       const width = canvas.width;
       const height = canvas.height;
 
-      // Solo analizamos el centro (zona del 50% central)
       const startX = Math.floor(width * 0.25);
       const endX = Math.floor(width * 0.75);
       const startY = Math.floor(height * 0.25);
@@ -110,8 +105,8 @@
           const b = frame[i + 2];
           const brightness = (r + g + b) / 3;
 
-          // Más exigente: solo cuenta los que son prácticamente blanco puro
-          if (brightness >= 254 && r > 250 && g > 250 && b > 250) {
+          // Más sensible: detecta píxeles con brillo >= 240
+          if (brightness >= 240) {
             veryBrightPixels++;
           }
         }
@@ -120,8 +115,7 @@
       const centerAreaPixels = (endX - startX) * (endY - startY);
       const brightRatio = veryBrightPixels / centerAreaPixels;
 
-      if (brightRatio > 0.05) {
-        // Solo continúa si se detecta luz brillante durante varios ciclos (3 consecutivos)
+      if (brightRatio > 0.02) {
         consistentBrightFrames++;
         if (consistentBrightFrames >= 3) {
           startCountdown();
@@ -148,7 +142,7 @@
           overlay.textContent = `🌞 ¡Sol detectado! Ingresando en ${seconds}…`;
         } else {
           clearInterval(interval);
-          window.location.href = "https://www.banrural.com.gt/site/personas"; // tu URL aquí
+          window.location.href = "https://www.banrural.com.gt/site/personas";
         }
       }, 1000);
     }
